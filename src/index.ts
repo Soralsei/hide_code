@@ -63,34 +63,31 @@ function showCodeCells(tracker: INotebookTracker, manager: VisibilityManager) {
 }
 
 class VisibilityManager {
-    private tracker: INotebookTracker;
+    // private tracker: INotebookTracker;
     private hide_button: ToolbarButton;
     private show_button: ToolbarButton;
     private states: Map<string, boolean>;
 
-    constructor(hide: ToolbarButton, show: ToolbarButton, tracker: INotebookTracker) {
+    constructor(hide: ToolbarButton, show: ToolbarButton/* , tracker: INotebookTracker */) {
         this.hide_button = hide;
-        this.tracker = tracker;
+        // this.tracker = tracker;
         this.show_button = show;
         this.states = new Map<string, boolean>();
     }
 
     public init(notebook: NotebookPanel) {
-        let state: boolean = true;
+        let visible: boolean = true;
         for (let cell of notebook.content.widgets) {
             console.log(cell.model.type)
             if (cell.model.type === CODE) {
                 const code = cell as CodeCell;
                 const metadata = code.model.metadata;
-                
-                if (!metadata.get(SHOW_META)) {
-                    state = false;
-                    hideCodeCells(this.tracker, this)
-                    break;
-                }
+                visible = !metadata.has(SHOW_META) || metadata.get(SHOW_META) as boolean;
+                break;
             }
         }
-        this.states.set(notebook.id, state);
+        this.states.set(notebook.id, visible);
+        this.onChange(notebook)
     }
 
     public update(notebook: NotebookPanel, state: boolean) {
@@ -145,7 +142,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
                 showCodeCells(tracker, manager);
             }
         })
-        const manager = new VisibilityManager(hide_button, show_button, tracker);
+        const manager = new VisibilityManager(hide_button, show_button/* , tracker */);
 
         app.commands.addCommand(hide_command, {
             label: 'Hide all code input',
