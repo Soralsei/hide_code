@@ -63,31 +63,31 @@ function showCodeCells(tracker: INotebookTracker, manager: VisibilityManager) {
 }
 
 class VisibilityManager {
-    // private tracker: INotebookTracker;
+    private tracker: INotebookTracker;
     private hide_button: ToolbarButton;
     private show_button: ToolbarButton;
     private states: Map<string, boolean>;
 
-    constructor(hide: ToolbarButton, show: ToolbarButton/* , tracker: INotebookTracker */) {
+    constructor(hide: ToolbarButton, show: ToolbarButton, tracker: INotebookTracker) {
         this.hide_button = hide;
-        // this.tracker = tracker;
+        this.tracker = tracker;
         this.show_button = show;
         this.states = new Map<string, boolean>();
     }
 
     public init(notebook: NotebookPanel) {
-        let visible: boolean = true;
+        let isVisible: boolean = true;
         for (let cell of notebook.content.widgets) {
-            console.log(cell.model.type)
+            // console.log(cell.model.type)
             if (cell.model.type === CODE) {
                 const code = cell as CodeCell;
                 const metadata = code.model.metadata;
-                visible = !metadata.has(SHOW_META) || metadata.get(SHOW_META) as boolean;
+                isVisible = !metadata.has(SHOW_META) || metadata.get(SHOW_META) as boolean;
+                hideCodeCells(this.tracker, this);
                 break;
             }
         }
-        this.states.set(notebook.id, visible);
-        this.onChange(notebook)
+        this.update(notebook, isVisible);
     }
 
     public update(notebook: NotebookPanel, state: boolean) {
@@ -97,7 +97,7 @@ class VisibilityManager {
 
     public initIfNecessary(notebook: NotebookPanel) {
         if (!this.states.has(notebook.id)) {
-            console.log("initializing hide_code");
+            // console.log("initializing hide_code");
             this.init(notebook);
         }
     }
@@ -126,7 +126,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     autoStart: true,
     requires: [INotebookTracker, IMainMenu],
     activate: (app: JupyterFrontEnd, tracker: INotebookTracker, main_menu: IMainMenu) => {
-        console.log('JupyterLab extension hide_code is activated!');
+        // console.log('JupyterLab extension hide_code is activated!');
 
         const hide_command: string = EXT + ":hide";
         const show_command: string = EXT + ":show";
@@ -142,7 +142,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
                 showCodeCells(tracker, manager);
             }
         })
-        const manager = new VisibilityManager(hide_button, show_button/* , tracker */);
+        const manager = new VisibilityManager(hide_button, show_button, tracker);
 
         app.commands.addCommand(hide_command, {
             label: 'Hide all code input',
