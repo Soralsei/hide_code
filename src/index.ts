@@ -83,11 +83,12 @@ class VisibilityManager {
                 const code = cell as CodeCell;
                 const metadata = code.model.metadata;
                 isVisible = !metadata.has(SHOW_META) || metadata.get(SHOW_META) as boolean;
-                hideCodeCells(this.tracker, this);
                 break;
             }
         }
         this.update(notebook, isVisible);
+        if (!isVisible)
+            hideCodeCells(this.tracker, this);
     }
 
     public update(notebook: NotebookPanel, state: boolean) {
